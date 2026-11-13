@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                 String         @id @default(cuid())
+  slug               String         @unique
+  name               String
+  description        String
+  benefits           String
+  included           String
+  care               String
+  faq                String
+  category           String
+  priceCents         Int
+  cjVid              String
+  cjWarehouseId      String
+  supplierCostCents  Int
+  shippingCents      Int
+  deliveryMinDays    Int
+  deliveryMaxDays    Int
+  contributionCents  Int
+  usStock            Int
+  quotedAt           DateTime?
+  photoConfirmed     Boolean        @default(false)
+  active             Boolean        @default(false)
+  images             ProductImage[]
+  items              OrderItem[]
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  path      String
+  alt       String
+  position  Int
+}
+
+model Setting {
+  id                    Int     @id @default(1)
+  legalName             String  @default("")
+  email                 String  @default("")
+  address               String  @default("")
+  tagline               String  @default("Comfort for dogs and cats, shipped from the United States.")
+  referenceZip          String  @default("64108")
+  stripeRateBps         Int     @default(599)
+  stripeFixedCents      Int     @default(10)
+  fxReserveBps          Int     @default(300)
+  iofBps                Int     @default(350)
+  minContributionCents  Int     @default(800)
+  adContributionCents   Int     @default(3900)
+  adTestCapCents        Int     @default(15000)
+  checkoutPublic        Boolean @default(false)
+  cjBalanceCents        Int     @default(0)
+}
+
+model AdminUser {
+  id           String @id @default(cuid())
+  email        String @unique
+  passwordHash String
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  publicToken       String      @unique
+  email             String
+  name              String
+  phone             String
+  line1             String
+  line2             String      @default("")
+  city              String
+  postalCode        String
+  stateCode         String
+  shippingCents     Int
+  subtotalCents     Int
+  taxCents          Int         @default(0)
+  totalCents        Int
+  currency          String      @default("USD")
+  customerStatus    String
+  internalStatus    String
+  paymentReference  String?     @unique
+  cjOrderId         String?
+  carrier           String?
+  trackingCode      String?
+  internalNote      String      @default("")
+  deliveryMinDays   Int
+  deliveryMaxDays   Int
+  items             OrderItem[]
+  createdAt         DateTime    @default(now())
+}
+
+model CjSearchCursor {
+  category   String @id
+  nextPage   Int    @default(1)
+  nextOffset Int    @default(0)
+}
+
+model CjCandidate {
+  vid               String   @id
+  category          String
+  name              String
+  option            String
+  imageUrl          String
+  warehouseId       String
+  supplierCostCents Int
+  shippingCents     Int
+  priceCents        Int
+  contributionCents Int
+  usStock           Int
+  deliveryMinDays   Int
+  deliveryMaxDays   Int
+  cjProductId       String   @default("")
+  listedCount       Int      @default(0)
+  foundAt           DateTime @default(now())
+
+  @@index([category])
+  @@index([listedCount])
+}
+
+model OrderItem {
+  id                 String  @id @default(cuid())
+  orderId            String
+  order              Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product @relation(fields: [productId], references: [id])
+  name               String
+  unitPriceCents     Int
+  supplierCostCents  Int
+  cjVid              String
+  quantity           Int
+}
